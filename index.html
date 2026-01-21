@@ -3,184 +3,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Health Tracker</title>
-    <link rel="apple-touch-icon" href="icon.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Nutrition Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; background-color: #f8fafc; font-family: sans-serif; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 50; padding: 20px; }
-        .modal.active { display: flex; }
-        .hide { display: none !important; }
+        body { -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .progress-ring { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
     </style>
 </head>
-<body class="p-4">
-    <div class="max-w-md mx-auto">
+<body class="p-4 pb-24">
+    <div id="app" class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-slate-800" id="headerName">Tracker</h1>
-            <button onclick="openModal('profileModal')" class="bg-slate-200 p-2 rounded-full">⚙️</button>
+            <h1 id="appTitle" class="text-2xl font-bold text-slate-800">Nutrition Tracker</h1>
+            <button onclick="toggleModal('profileModal')" class="bg-slate-200 p-2 rounded-full">⚙️</button>
         </div>
 
-        <input type="date" id="datePicker" onchange="render()" class="w-full mb-6 p-3 rounded-xl shadow-sm border-none bg-white font-bold text-slate-600">
+        <input type="date" id="datePicker" onchange="loadDate()" class="w-full mb-6 p-3 rounded-xl border-none shadow-sm font-semibold text-slate-600">
 
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Calories</p>
-                <p class="text-xl font-black text-orange-500"><span id="cCurr">0</span> / <span id="cGoal">2000</span></p>
+                <p class="text-xs text-slate-500 font-bold uppercase">Calories</p>
+                <p class="text-xl font-black text-orange-500"><span id="calCurrent">0</span> / <span id="calGoal">2000</span></p>
+                <div class="w-full bg-slate-100 h-2 rounded-full mt-2"><div id="calBar" class="bg-orange-500 h-2 rounded-full transition-all" style="width: 0%"></div></div>
             </div>
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Protein</p>
-                <p class="text-xl font-black text-blue-500"><span id="pCurr">0</span> / <span id="pGoal">150</span>g</p>
+                <p class="text-xs text-slate-500 font-bold uppercase">Protein (g)</p>
+                <p class="text-xl font-black text-blue-500"><span id="proCurrent">0</span> / <span id="proGoal">150</span></p>
+                <div class="w-full bg-slate-100 h-2 rounded-full mt-2"><div id="proBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div></div>
             </div>
         </div>
 
-        <div class="bg-emerald-50 p-4 rounded-2xl mb-4 border border-emerald-100">
+        <div class="bg-cyan-50 p-4 rounded-2xl mb-6 border border-cyan-100">
             <div class="flex justify-between items-center mb-2">
-                <p class="text-xs font-bold text-emerald-800 uppercase">Injections</p>
-                <button onclick="openModal('injModal')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">Log Dose</button>
+                <h3 class="font-bold text-cyan-800 uppercase text-xs">Water Intake</h3>
+                <span class="text-cyan-600 font-bold" id="waterProgress">0 / 0 oz</span>
             </div>
-            <div id="injList" class="space-y-2"></div>
+            <div class="flex gap-2 mb-3">
+                <button onclick="addWater(8)" class="flex-1 bg-white border border-cyan-200 py-2 rounded-lg text-xs font-bold text-cyan-700">+8oz</button>
+                <button onclick="addWater(16)" class="flex-1 bg-white border border-cyan-200 py-2 rounded-lg text-xs font-bold text-cyan-700">+16oz</button>
+                <button onclick="addWater(24)" class="flex-1 bg-white border border-cyan-200 py-2 rounded-lg text-xs font-bold text-cyan-700">+24oz</button>
+            </div>
         </div>
 
-        <div class="bg-indigo-50 p-4 rounded-2xl mb-6 border border-indigo-100 flex justify-between items-center">
-            <div>
-                <p class="text-[10px] font-bold text-indigo-800 uppercase">Weight</p>
-                <p class="text-lg font-black text-indigo-900"><span id="wDisp">--</span> lbs</p>
+        <div class="bg-indigo-50 p-4 rounded-2xl mb-6 border border-indigo-100 text-indigo-900">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-bold uppercase opacity-70">Current Weight</p>
+                    <p class="text-2xl font-black"><span id="weightDisplay">--</span> lbs</p>
+                </div>
+                <button onclick="toggleModal('weightModal')" class="bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-bold">Log Weight</button>
             </div>
-            <button onclick="openModal('wModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Log</button>
+            <p class="text-xs mt-2 font-medium">Target: <span id="targetWeightDisplay">--</span> lbs (<span id="weightToGoal">--</span> to go)</p>
         </div>
 
-        <div class="flex justify-between items-center mb-3">
-            <h2 class="font-bold text-slate-600 uppercase text-xs">Food Log</h2>
-            <button onclick="openModal('foodModal')" class="bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">＋</button>
-        </div>
-        <div id="foodList" class="space-y-2 mb-20"></div>
+        <div class="space-y-3 mb-24" id="mealList">
+            </div>
+
+        <button onclick="toggleModal('mealModal')" class="fixed bottom-6 right-6 w-16 h-16 bg-slate-900 text-white rounded-full shadow-2xl text-3xl flex items-center justify-center">＋</button>
     </div>
 
-    <div id="foodModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
-        <h3 class="font-bold mb-2">Food Library</h3>
-        <div id="libGrid" class="grid grid-cols-2 gap-2 mb-4 max-h-40 overflow-y-auto border-b pb-4 pt-1"></div>
-        
-        <div class="mt-4">
-            <input type="text" id="fName" placeholder="Food Name" class="w-full p-2 mb-2 bg-slate-100 rounded text-sm">
-            <div class="flex gap-2 mb-4">
-                <input type="number" id="fCal" placeholder="Cals" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
-                <input type="number" id="fPro" placeholder="Pro (g)" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
+    <div id="mealModal" class="hidden fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Add Food</h2>
+                <button onclick="toggleModal('mealModal')" class="text-2xl">×</button>
             </div>
-            <input type="hidden" id="editLibIndex" value="-1">
-            <div class="flex flex-col gap-2">
-                <button id="mainFoodBtn" onclick="addFood()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Log for Today</button>
-                <button id="libActionBtn" onclick="saveToLibrary()" class="w-full border border-slate-900 text-slate-900 py-2 rounded-xl text-xs font-bold">Add to Library</button>
-                <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Close</button>
+            
+            <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Quick Add from Library</p>
+            <div id="foodLibraryGrid" class="grid grid-cols-2 gap-2 mb-6 max-h-48 overflow-y-auto border-b pb-4">
+                </div>
+
+            <form id="mealForm" onsubmit="saveMeal(event)" class="space-y-4">
+                <input type="text" id="foodName" placeholder="Food Name" class="w-full p-3 bg-slate-100 rounded-xl" required>
+                <div class="flex gap-4">
+                    <input type="number" id="foodCals" placeholder="Cals" class="w-1/2 p-3 bg-slate-100 rounded-xl" required>
+                    <input type="number" id="foodPro" placeholder="Protein (g)" class="w-1/2 p-3 bg-slate-100 rounded-xl" required>
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Log Entry</button>
+                <button type="button" onclick="addToLibrary()" class="w-full border-2 border-slate-900 py-2 rounded-2xl font-bold text-sm">Save to Library Only</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6">
+            <h2 class="text-xl font-bold mb-4">Profile & Goals</h2>
+            <div class="space-y-4">
+                <input type="text" id="userName" placeholder="Your Name" class="w-full p-3 bg-slate-100 rounded-xl">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Calorie Goal</label>
+                    <input type="number" id="goalCals" class="w-full p-3 bg-slate-100 rounded-xl">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Protein Goal (g)</label>
+                    <input type="number" id="goalPro" class="w-full p-3 bg-slate-100 rounded-xl">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Target Weight (lbs)</label>
+                    <input type="number" id="goalWeight" class="w-full p-3 bg-slate-100 rounded-xl">
+                </div>
+                <p class="text-[10px] text-cyan-600 font-bold">* Water goal auto-updates to 50% of weight.</p>
+                <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Save Changes</button>
+                <button onclick="toggleModal('profileModal')" class="w-full py-2 text-slate-400 font-bold">Cancel</button>
             </div>
         </div>
-    </div></div>
+    </div>
 
-    <div id="injModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
-        <h3 class="font-bold mb-4" id="injModalTitle">Log Injection</h3>
-        <input type="hidden" id="editInjIndex" value="-1">
-        
-        <div class="space-y-3">
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Medication</label>
-                <input type="text" id="iName" placeholder="Drug Name" class="w-full p-2 bg-slate-100 rounded">
-            </div>
-            <div class="flex gap-2">
-                <div class="w-1/2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Dosage (mg)</label>
-                    <input type="number" id="iMg" step="0.1" class="w-full p-2 bg-slate-100 rounded">
-                </div>
-                <div class="w-1/2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">Volume (ml)</label>
-                    <input type="number" id="iMl" step="0.1" class="w-full p-2 bg-slate-100 rounded">
-                </div>
-            </div>
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Time</label>
-                <input type="time" id="iTime" class="w-full p-2 bg-slate-100 rounded">
-            </div>
-            <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Notes</label>
-                <textarea id="iNotes" placeholder="e.g. Left thigh" class="w-full p-2 bg-slate-100 rounded text-sm h-16"></textarea>
-            </div>
+    <div id="weightModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6">
+            <h2 class="text-xl font-bold mb-4">Log Weight</h2>
+            <input type="number" id="weightInput" step="0.1" class="w-full p-3 bg-slate-100 rounded-xl mb-4" placeholder="0.0 lbs">
+            <button onclick="saveWeight()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Save Weight</button>
+            <button onclick="toggleModal('weightModal')" class="w-full py-2 text-slate-400 font-bold">Cancel</button>
         </div>
-
-        <button id="injSubmitBtn" onclick="addInj()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold mt-4">Record</button>
-        <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm text-center block">Cancel</button>
-    </div></div>
-
-    <div id="wModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm text-center">
-        <h3 class="font-bold mb-4">Log Weight</h3>
-        <input type="number" id="wInput" step="0.1" class="w-full p-4 mb-4 bg-slate-100 rounded-xl text-center text-2xl">
-        <button onclick="saveW()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Save</button>
-    </div></div>
-
-    <div id="profileModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
-        <h3 class="font-bold mb-4">Settings</h3>
-        <input type="text" id="uName" placeholder="Name" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <input type="number" id="uCal" placeholder="Calorie Goal" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <input type="number" id="uPro" placeholder="Protein Goal" class="w-full p-2 mb-4 bg-slate-100 rounded">
-        <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save Settings</button>
-    </div></div>
+    </div>
 
     <script>
-        const starterLibrary = [{ name: "Chicken (4oz)", cal: 165, pro: 31 }, { name: "Eggs (2)", cal: 140, pro: 12 }, { name: "Greek Yogurt", cal: 100, pro: 18 }];
-        let db = JSON.parse(localStorage.getItem('appDB')) || { user: { name: "", cGoal: 2000, pGoal: 150 }, days: {}, library: starterLibrary };
-        if(!db.library || db.library.length === 0) db.library = starterLibrary;
+        // --- DATA STRUCTURE ---
+        let state = JSON.parse(localStorage.getItem('nutritionAppData')) || {
+            user: { name: "", calorieGoal: 2000, proteinGoal: 150, targetWeight: 150 },
+            days: {}, // format: { "2023-10-27": { meals: [], water: 0, weight: 0 } }
+            library: [
+                { name: "Chicken Breast (4oz)", cal: 165, pro: 31 },
+                { name: "Eggs (2 large)", cal: 140, pro: 12 },
+                { name: "Greek Yogurt", cal: 100, pro: 18 },
+                { name: "Protein Shake", cal: 150, pro: 30 },
+                { name: "Cottage Cheese (1/2c)", cal: 90, pro: 12 }
+            ]
+        };
 
-        function openModal(id) { 
-            document.getElementById(id).classList.add('active'); 
-            if(id === 'foodModal') { renderLibrary(); resetFoodForm(); }
-            if(id === 'injModal' && document.getElementById('editInjIndex').value == "-1") resetInjForm();
-            if(id === 'profileModal') {
-                document.getElementById('uName').value = db.user.name || "";
-                document.getElementById('uCal').value = db.user.cGoal || 2000;
-                document.getElementById('uPro').value = db.user.pGoal || 150;
+        // --- CORE FUNCTIONS ---
+        function saveToStorage() {
+            localStorage.setItem('nutritionAppData', JSON.stringify(state));
+            render();
+        }
+
+        function toggleModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        const datePicker = document.getElementById('datePicker');
+        if(!datePicker.value) datePicker.value = new Date().toISOString().split('T')[0];
+
+        function getSelectedDate() { return datePicker.value; }
+
+        function getDayData() {
+            const d = getSelectedDate();
+            if (!state.days[d]) state.days[d] = { meals: [], water: 0 };
+            return state.days[d];
+        }
+
+        // --- APP LOGIC ---
+        function saveProfile() {
+            state.user.name = document.getElementById('userName').value;
+            state.user.calorieGoal = parseInt(document.getElementById('goalCals').value);
+            state.user.proteinGoal = parseInt(document.getElementById('goalPro').value);
+            state.user.targetWeight = parseFloat(document.getElementById('goalWeight').value);
+            saveToStorage();
+            toggleModal('profileModal');
+        }
+
+        function saveWeight() {
+            const w = parseFloat(document.getElementById('weightInput').value);
+            if (w) {
+                const day = getDayData();
+                day.weight = w;
+                saveToStorage();
+                toggleModal('weightModal');
             }
         }
-        function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-        const picker = document.getElementById('datePicker');
-        picker.value = new Date().toISOString().split('T')[0];
 
-        function getToday() {
-            let d = picker.value;
-            if(!db.days[d]) db.days[d] = { food: [], inj: [], w: null };
-            return db.days[d];
+        function addWater(oz) {
+            const day = getDayData();
+            day.water += oz;
+            saveToStorage();
         }
 
-        function save() { localStorage.setItem('appDB', JSON.stringify(db)); render(); }
+        function saveMeal(e) {
+            e.preventDefault();
+            const day = getDayData();
+            day.meals.push({
+                id: Date.now(),
+                name: document.getElementById('foodName').value,
+                cal: parseInt(document.getElementById('foodCals').value),
+                pro: parseInt(document.getElementById('foodPro').value)
+            });
+            document.getElementById('mealForm').reset();
+            saveToStorage();
+            toggleModal('mealModal');
+        }
 
-        // --- FOOD & LIBRARY ---
-        function renderLibrary() {
-            const grid = document.getElementById('libGrid');
-            grid.innerHTML = db.library.map((l, i) => `
-                <div class="relative bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer" onclick="selectLib(${i})">
-                    <p class="text-[10px] font-bold truncate pr-4 text-slate-700">${l.name}</p>
-                    <p class="text-[9px] text-slate-500">${l.cal}c | ${l.pro}g</p>
-                    <div class="absolute top-1 right-1 flex flex-col gap-1">
-                        <button onclick="editLibItem(${i}, event)" class="text-[10px]">✏️</button>
-                        <button onclick="deleteLibItem(${i}, event)" class="text-[10px]">✕</button>
+        function addToLibrary() {
+            const name = document.getElementById('foodName').value;
+            const cal = parseInt(document.getElementById('foodCals').value);
+            const pro = parseInt(document.getElementById('foodPro').value);
+            if (name && cal && pro) {
+                state.library.push({ name, cal, pro });
+                saveToStorage();
+                alert('Saved to library!');
+            }
+        }
+
+        function selectFromLibrary(index) {
+            const item = state.library[index];
+            document.getElementById('foodName').value = item.name;
+            document.getElementById('foodCals').value = item.cal;
+            document.getElementById('foodPro').value = item.pro;
+        }
+
+        function deleteMeal(id) {
+            const day = getDayData();
+            day.meals = day.meals.filter(m => m.id !== id);
+            saveToStorage();
+        }
+
+        function deleteLibraryItem(index, event) {
+            event.stopPropagation();
+            state.library.splice(index, 1);
+            saveToStorage();
+        }
+
+        // --- RENDERER ---
+        function render() {
+            const day = getDayData();
+            const user = state.user;
+
+            // Header
+            document.getElementById('appTitle').innerText = user.name ? `${user.name}'s Tracker` : "Nutrition Tracker";
+            
+            // Goals
+            document.getElementById('calGoal').innerText = user.calorieGoal;
+            document.getElementById('proGoal').innerText = user.proteinGoal;
+            
+            // Current Progress
+            const totalCal = day.meals.reduce((sum, m) => sum + m.cal, 0);
+            const totalPro = day.meals.reduce((sum, m) => sum + m.pro, 0);
+            
+            document.getElementById('calCurrent').innerText = totalCal;
+            document.getElementById('proCurrent').innerText = totalPro;
+            document.getElementById('calBar').style.width = Math.min((totalCal / user.calorieGoal) * 100, 100) + "%";
+            document.getElementById('proBar').style.width = Math.min((totalPro / user.proteinGoal) * 100, 100) + "%";
+
+            // Water Calculation (50% of weight)
+            // Use current day weight, or find the most recent previous weight
+            let latestWeight = 0;
+            const sortedDates = Object.keys(state.days).sort().reverse();
+            for(let d of sortedDates) {
+                if(state.days[d].weight) {
+                    latestWeight = state.days[d].weight;
+                    break;
+                }
+            }
+
+            const waterGoal = latestWeight ? Math.round(latestWeight / 2) : 64;
+            document.getElementById('waterProgress').innerText = `${day.water} / ${waterGoal} oz`;
+            
+            // Weight Displays
+            document.getElementById('weightDisplay').innerText = day.weight || (latestWeight || "--");
+            document.getElementById('targetWeightDisplay').innerText = user.targetWeight || "--";
+            if(user.targetWeight && latestWeight) {
+                document.getElementById('weightToGoal').innerText = (latestWeight - user.targetWeight).toFixed(1) + " lbs";
+            }
+
+            // Library Grid
+            const libGrid = document.getElementById('foodLibraryGrid');
+            libGrid.innerHTML = state.library.map((item, i) => `
+                <div onclick="selectFromLibrary(${i})" class="bg-slate-50 p-2 rounded-lg border border-slate-200 relative group cursor-pointer">
+                    <p class="text-[10px] font-bold truncate">${item.name}</p>
+                    <p class="text-[9px] text-slate-500">${item.cal}cal | ${item.pro}g pro</p>
+                    <button onclick="deleteLibraryItem(${i}, event)" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px]">×</button>
+                </div>
+            `).join('');
+
+            // Meal List
+            const list = document.getElementById('mealList');
+            list.innerHTML = day.meals.map(m => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100">
+                    <div>
+                        <p class="font-bold text-slate-800">${m.name}</p>
+                        <p class="text-xs text-slate-500">${m.cal} Cal · ${m.pro}g Protein</p>
                     </div>
-                </div>`).join('');
+                    <button onclick="deleteMeal(${m.id})" class="text-slate-300 hover:text-red-500 text-xl">×</button>
+                </div>
+            `).join('');
+
+            // Pre-fill Profile Inputs if empty
+            document.getElementById('userName').value = user.name;
+            document.getElementById('goalCals').value = user.calorieGoal;
+            document.getElementById('goalPro').value = user.proteinGoal;
+            document.getElementById('goalWeight').value = user.targetWeight;
         }
 
-        function resetFoodForm() {
-            document.getElementById('fName').value = ''; document.getElementById('fCal').value = '';
-            document.getElementById('fPro').value = ''; document.getElementById('editLibIndex').value = '-1';
-            document.getElementById('libActionBtn').innerText = 'Add to Library';
-            document.getElementById('mainFoodBtn').classList.remove('hide');
-        }
+        function loadDate() { render(); }
 
-        function selectLib(i) {
-            const item = db.library[i];
-            document.getElementById('fName').value = item.name;
-            document.getElementById('fCal').value = item.cal;
-            document.getElementById('fPro').value = item.pro;
-        }
-
-        function editLibItem(i, e) {
-            e.stopPropagation();
-            const item = db.library[i];
-            document.getElementById('fName').value = item.name;
-            document.getElementById('fCal').value = item.cal;
-            document.getElementById('fPro').value = item.
+        // Initial Run
+        render();
+    </script>
+</body>
+</html>
