@@ -20,25 +20,25 @@
             <button onclick="openModal('profileModal')" class="bg-slate-200 p-2 rounded-full">⚙️</button>
         </div>
 
-        <input type="date" id="datePicker" onchange="render()" class="w-full mb-6 p-3 rounded-xl shadow-sm border-none bg-white font-bold">
+        <input type="date" id="datePicker" onchange="render()" class="w-full mb-6 p-3 rounded-xl shadow-sm border-none bg-white font-bold text-slate-600">
 
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-[10px] text-slate-500 font-bold uppercase">Calories</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Calories</p>
                 <p class="text-xl font-black text-orange-500"><span id="cCurr">0</span> / <span id="cGoal">2000</span></p>
             </div>
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <p class="text-[10px] text-slate-500 font-bold uppercase">Protein</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Protein</p>
                 <p class="text-xl font-black text-blue-500"><span id="pCurr">0</span> / <span id="pGoal">150</span>g</p>
             </div>
         </div>
 
         <div class="bg-emerald-50 p-4 rounded-2xl mb-4 border border-emerald-100">
             <div class="flex justify-between items-center mb-2">
-                <p class="text-xs font-bold text-emerald-800 uppercase tracking-tight">Injection Log</p>
-                <button onclick="openModal('injModal')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase">Log Dose</button>
+                <p class="text-xs font-bold text-emerald-800 uppercase">Injections</p>
+                <button onclick="openModal('injModal')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">Log Dose</button>
             </div>
-            <div id="injList" class="space-y-1"></div>
+            <div id="injList" class="space-y-2"></div>
         </div>
 
         <div class="bg-indigo-50 p-4 rounded-2xl mb-6 border border-indigo-100 flex justify-between items-center">
@@ -46,39 +46,48 @@
                 <p class="text-[10px] font-bold text-indigo-800 uppercase">Weight</p>
                 <p class="text-lg font-black text-indigo-900"><span id="wDisp">--</span> lbs</p>
             </div>
-            <button onclick="openModal('wModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Log Weight</button>
+            <button onclick="openModal('wModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Log</button>
         </div>
 
         <div class="flex justify-between items-center mb-3">
             <h2 class="font-bold text-slate-600 uppercase text-xs">Food Log</h2>
-            <button onclick="openModal('foodModal')" class="text-slate-900 font-bold text-xl">＋</button>
+            <button onclick="openModal('foodModal')" class="bg-slate-900 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">＋</button>
         </div>
         <div id="foodList" class="space-y-2 mb-20"></div>
-
-        <button onclick="clearData()" class="w-full text-[9px] text-slate-300 uppercase mt-10">Reset All Data</button>
     </div>
 
     <div id="foodModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
-        <h3 class="font-bold mb-4">Add Food</h3>
-        <input type="text" id="fName" placeholder="Food Name" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <input type="number" id="fCal" placeholder="Calories" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <input type="number" id="fPro" placeholder="Protein (g)" class="w-full p-2 mb-4 bg-slate-100 rounded">
-        <button onclick="addFood()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save</button>
-        <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Cancel</button>
+        <h3 class="font-bold mb-2">Food Library</h3>
+        <div id="libGrid" class="grid grid-cols-2 gap-2 mb-4 max-h-40 overflow-y-auto border-b pb-4 pt-1"></div>
+        <input type="text" id="fName" placeholder="Food Name" class="w-full p-2 mb-2 bg-slate-100 rounded text-sm">
+        <div class="flex gap-2 mb-4">
+            <input type="number" id="fCal" placeholder="Cals" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
+            <input type="number" id="fPro" placeholder="Pro (g)" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
+        </div>
+        <input type="hidden" id="editLibIndex" value="-1">
+        <div class="flex flex-col gap-2">
+            <button id="mainFoodBtn" onclick="addFood()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Log for Today</button>
+            <button id="libActionBtn" onclick="saveToLibrary()" class="w-full border border-slate-900 text-slate-900 py-2 rounded-xl text-xs font-bold">Add to Library</button>
+            <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Close</button>
+        </div>
     </div></div>
 
     <div id="injModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
-        <h3 class="font-bold mb-4">Log Injection</h3>
+        <h3 class="font-bold mb-4" id="injModalTitle">Log Injection</h3>
+        <input type="hidden" id="editInjIndex" value="-1">
         <input type="text" id="iName" placeholder="Drug Name" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <input type="number" id="iMg" step="0.1" placeholder="Dosage (mg)" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <input type="number" id="iMl" step="0.1" placeholder="Volume (ml/cc)" class="w-full p-2 mb-4 bg-slate-100 rounded">
-        <button onclick="addInj()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold">Record</button>
+        <div class="flex gap-2 mb-2">
+            <input type="number" id="iMg" step="0.1" placeholder="mg" class="w-1/2 p-2 bg-slate-100 rounded">
+            <input type="number" id="iMl" step="0.1" placeholder="ml" class="w-1/2 p-2 bg-slate-100 rounded">
+        </div>
+        <textarea id="iNotes" placeholder="Notes (e.g. Left thigh)" class="w-full p-2 mb-4 bg-slate-100 rounded text-sm h-20"></textarea>
+        <button id="injSubmitBtn" onclick="addInj()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold">Record</button>
         <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Cancel</button>
     </div></div>
 
-    <div id="wModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
-        <h3 class="font-bold mb-4 text-center">Log Weight</h3>
-        <input type="number" id="wInput" step="0.1" class="w-full p-4 mb-4 bg-slate-100 rounded-xl text-center text-2xl">
+    <div id="wModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm text-center">
+        <h3 class="font-bold mb-4">Log Weight</h3>
+        <input type="number" id="wInput" step="0.1" class="w-full p-4 mb-4 bg-slate-100 rounded-xl text-center text-2xl" placeholder="0.0">
         <button onclick="saveW()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Save</button>
     </div></div>
 
@@ -87,15 +96,20 @@
         <input type="text" id="uName" placeholder="Name" class="w-full p-2 mb-2 bg-slate-100 rounded">
         <input type="number" id="uCal" placeholder="Calorie Goal" class="w-full p-2 mb-2 bg-slate-100 rounded">
         <input type="number" id="uPro" placeholder="Protein Goal" class="w-full p-2 mb-4 bg-slate-100 rounded">
-        <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save</button>
+        <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save Settings</button>
+        <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Cancel</button>
     </div></div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('appDB')) || { user: {}, days: {} };
+        const starterLibrary = [{ name: "Chicken (4oz)", cal: 165, pro: 31 }, { name: "Eggs (2)", cal: 140, pro: 12 }, { name: "Greek Yogurt", cal: 100, pro: 18 }];
+        let db = JSON.parse(localStorage.getItem('appDB')) || { user: { name: "", cGoal: 2000, pGoal: 150 }, days: {}, library: starterLibrary };
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id === 'foodModal') resetFoodForm();
+            if(id === 'injModal' && document.getElementById('editInjIndex').value == "-1") resetInjForm();
+        }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-        
         const picker = document.getElementById('datePicker');
         picker.value = new Date().toISOString().split('T')[0];
 
@@ -105,57 +119,93 @@
             return db.days[d];
         }
 
-        function save() {
-            localStorage.setItem('appDB', JSON.stringify(db));
-            render();
-            closeModals();
-        }
+        function save() { localStorage.setItem('appDB', JSON.stringify(db)); render(); }
 
+        // --- FOOD LOGIC ---
+        function resetFoodForm() {
+            document.getElementById('fName').value = ''; document.getElementById('fCal').value = '';
+            document.getElementById('fPro').value = ''; document.getElementById('editLibIndex').value = '-1';
+            document.getElementById('libActionBtn').innerText = 'Add to Library';
+            document.getElementById('mainFoodBtn').classList.remove('hidden'); renderLibrary();
+        }
+        function editLibItem(i, e) {
+            e.stopPropagation(); const item = db.library[i];
+            document.getElementById('fName').value = item.name; document.getElementById('fCal').value = item.cal;
+            document.getElementById('fPro').value = item.pro; document.getElementById('editLibIndex').value = i;
+            document.getElementById('libActionBtn').innerText = 'Update Library Item';
+            document.getElementById('mainFoodBtn').classList.add('hidden');
+        }
+        function saveToLibrary() {
+            const n = document.getElementById('fName').value; const c = parseInt(document.getElementById('fCal').value) || 0;
+            const p = parseInt(document.getElementById('fPro').value) || 0; const idx = parseInt(document.getElementById('editLibIndex').value);
+            if(!n) return;
+            if(idx > -1) db.library[idx] = { name:n, cal:c, pro:p }; else db.library.push({ name:n, cal:c, pro:p });
+            save(); resetFoodForm();
+        }
+        function selectLib(i) {
+            const item = db.library[i]; document.getElementById('fName').value = item.name;
+            document.getElementById('fCal').value = item.cal; document.getElementById('fPro').value = item.pro;
+            document.getElementById('editLibIndex').value = "-1"; document.getElementById('libActionBtn').innerText = 'Add to Library';
+            document.getElementById('mainFoodBtn').classList.remove('hidden');
+        }
         function addFood() {
-            getToday().food.push({
-                name: document.getElementById('fName').value,
-                cal: parseInt(document.getElementById('fCal').value) || 0,
-                pro: parseInt(document.getElementById('fPro').value) || 0
-            });
-            save();
+            const n = document.getElementById('fName').value; if(!n) return;
+            getToday().food.push({ name: n, cal: parseInt(document.getElementById('fCal').value) || 0, pro: parseInt(document.getElementById('fPro').value) || 0 });
+            save(); closeModals();
         }
 
+        // --- INJECTION LOGIC ---
+        function resetInjForm() {
+            document.getElementById('editInjIndex').value = "-1"; document.getElementById('injModalTitle').innerText = "Log Injection";
+            document.getElementById('iName').value = ""; document.getElementById('iMg').value = "";
+            document.getElementById('iMl').value = ""; document.getElementById('iNotes').value = "";
+            document.getElementById('injSubmitBtn').innerText = "Record";
+        }
+        function editInj(i) {
+            const item = getToday().inj[i];
+            document.getElementById('editInjIndex').value = i; document.getElementById('injModalTitle').innerText = "Edit Injection";
+            document.getElementById('iName').value = item.name; document.getElementById('iMg').value = item.mg;
+            document.getElementById('iMl').value = item.ml; document.getElementById('iNotes').value = item.notes || "";
+            document.getElementById('injSubmitBtn').innerText = "Update Entry";
+            openModal('injModal');
+        }
         function addInj() {
-            getToday().inj.push({
-                name: document.getElementById('iName').value,
-                mg: document.getElementById('iMg').value,
-                ml: document.getElementById('iMl').value,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            });
-            save();
+            const idx = parseInt(document.getElementById('editInjIndex').value);
+            const data = {
+                name: document.getElementById('iName').value, mg: document.getElementById('iMg').value,
+                ml: document.getElementById('iMl').value, notes: document.getElementById('iNotes').value,
+                time: idx > -1 ? getToday().inj[idx].time : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            if(!data.name) return;
+            if(idx > -1) getToday().inj[idx] = data; else getToday().inj.push(data);
+            save(); closeModals(); resetInjForm();
         }
 
-        function saveW() {
-            getToday().w = document.getElementById('wInput').value;
-            save();
-        }
-
+        function saveW() { getToday().w = document.getElementById('wInput').value; save(); closeModals(); }
         function saveProfile() {
-            db.user.name = document.getElementById('uName').value;
-            db.user.cGoal = document.getElementById('uCal').value;
-            db.user.pGoal = document.getElementById('uPro').value;
-            save();
+            db.user.name = document.getElementById('uName').value; db.user.cGoal = document.getElementById('uCal').value;
+            db.user.pGoal = document.getElementById('uPro').value; save(); closeModals();
         }
 
-        function clearData() { if(confirm("Delete everything?")) { localStorage.clear(); location.reload(); } }
+        function renderLibrary() {
+            document.getElementById('libGrid').innerHTML = db.library.map((l, i) => `
+                <div class="relative bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer" onclick="selectLib(${i})">
+                    <p class="text-[10px] font-bold truncate pr-4">${l.name}</p>
+                    <div class="absolute top-1 right-1 flex flex-col gap-1">
+                        <button onclick="editLibItem(${i}, event)" class="text-[10px]">✏️</button>
+                        <button onclick="event.stopPropagation(); db.library.splice(${i},1); save(); renderLibrary();" class="text-[10px]">✕</button>
+                    </div>
+                </div>`).join('');
+        }
 
         function render() {
             const day = getToday();
             document.getElementById('headerName').innerText = db.user.name ? db.user.name + "'s Tracker" : "Tracker";
             document.getElementById('cGoal').innerText = db.user.cGoal || 2000;
             document.getElementById('pGoal').innerText = db.user.pGoal || 150;
-
-            const totalCal = day.food.reduce((s, f) => s + f.cal, 0);
-            const totalPro = day.food.reduce((s, f) => s + f.pro, 0);
-            document.getElementById('cCurr').innerText = totalCal;
-            document.getElementById('pCurr').innerText = totalPro;
-
-            // Find latest weight if today is empty
+            document.getElementById('cCurr').innerText = (day.food || []).reduce((s, f) => s + f.cal, 0);
+            document.getElementById('pCurr').innerText = (day.food || []).reduce((s, f) => s + f.pro, 0);
+            
             let displayW = day.w;
             if(!displayW) {
                 const dates = Object.keys(db.days).sort().reverse();
@@ -163,21 +213,27 @@
             }
             document.getElementById('wDisp').innerText = displayW || "--";
 
-            document.getElementById('injList').innerHTML = day.inj.map(i => `
-                <div class="text-sm text-emerald-900 flex justify-between">
-                    <span><b>${i.name}</b>: ${i.mg}mg (${i.ml}ml)</span>
-                    <span class="opacity-50">${i.time}</span>
-                </div>
-            `).join('') || '<p class="text-xs text-emerald-600 opacity-60">No entries</p>';
+            document.getElementById('injList').innerHTML = day.inj.map((i, idx) => `
+                <div class="bg-white/50 p-2 rounded-lg border border-emerald-100 flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex justify-between text-sm text-emerald-900">
+                            <span><b>${i.name}</b>: ${i.mg}mg</span>
+                            <span class="opacity-50 text-[10px]">${i.time}</span>
+                        </div>
+                        ${i.notes ? `<p class="text-[11px] text-emerald-700 italic mt-1 leading-tight">"${i.notes}"</p>` : ''}
+                    </div>
+                    <div class="flex flex-col gap-2 ml-3">
+                        <button onclick="editInj(${idx})" class="text-xs">✏️</button>
+                        <button onclick="getToday().inj.splice(${idx},1); save();" class="text-xs text-emerald-300">✕</button>
+                    </div>
+                </div>`).join('') || '<p class="text-xs text-emerald-600 opacity-60">No entries</p>';
 
-            document.getElementById('foodList').innerHTML = day.food.map((f, index) => `
-                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center">
-                    <div><p class="font-bold text-sm">${f.name}</p><p class="text-[10px] text-slate-400">${f.cal} cal | ${f.pro}g pro</p></div>
-                    <button onclick="db.days['${picker.value}'].food.splice(${index},1); save();" class="text-slate-200">✕</button>
-                </div>
-            `).join('');
+            document.getElementById('foodList').innerHTML = (day.food || []).map((f, index) => `
+                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
+                    <div><p class="font-bold text-sm text-slate-700">${f.name}</p><p class="text-[10px] text-slate-400">${f.cal} cal | ${f.pro}g pro</p></div>
+                    <button onclick="getToday().food.splice(${index},1); save();" class="text-slate-300 px-2">✕</button>
+                </div>`).join('');
         }
-
         render();
     </script>
 </body>
