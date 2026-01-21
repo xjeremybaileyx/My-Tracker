@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nutrition Tracker</title>
+    <title>Nutrition & Med Tracker</title>
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .modal-open { overflow: hidden; }
     </style>
 </head>
 <body class="p-4 pb-24">
@@ -21,7 +22,7 @@
 
         <input type="date" id="datePicker" onchange="render()" class="w-full mb-6 p-3 rounded-xl border-none shadow-sm font-semibold text-slate-600 bg-white">
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 <p class="text-xs text-slate-500 font-bold uppercase">Calories</p>
                 <p class="text-xl font-black text-orange-500"><span id="calCurrent">0</span> / <span id="calGoalDisplay">2000</span></p>
@@ -34,12 +35,22 @@
             </div>
         </div>
 
-        <div class="bg-cyan-50 p-4 rounded-2xl mb-6 border border-cyan-100">
+        <div class="bg-emerald-50 p-4 rounded-2xl mb-4 border border-emerald-100 text-emerald-900">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-xs font-bold uppercase opacity-70">Injection Log</p>
+                    <p id="latestInjection" class="text-sm font-bold">No injections today</p>
+                </div>
+                <button onclick="toggleModal('injectionModal')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold">Log Dose</button>
+            </div>
+        </div>
+
+        <div class="bg-cyan-50 p-4 rounded-2xl mb-4 border border-cyan-100">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold text-cyan-800 uppercase text-xs">Water Intake</h3>
                 <span class="text-cyan-600 font-bold" id="waterProgress">0 / 0 oz</span>
             </div>
-            <div class="flex gap-2 mb-3">
+            <div class="flex gap-2">
                 <button onclick="addWater(8)" class="flex-1 bg-white border border-cyan-200 py-2 rounded-lg text-xs font-bold text-cyan-700">+8oz</button>
                 <button onclick="addWater(16)" class="flex-1 bg-white border border-cyan-200 py-2 rounded-lg text-xs font-bold text-cyan-700">+16oz</button>
                 <button onclick="addWater(24)" class="flex-1 bg-white border border-cyan-200 py-2 rounded-lg text-xs font-bold text-cyan-700">+24oz</button>
@@ -49,12 +60,11 @@
         <div class="bg-indigo-50 p-4 rounded-2xl mb-6 border border-indigo-100 text-indigo-900">
             <div class="flex justify-between items-center">
                 <div>
-                    <p class="text-xs font-bold uppercase opacity-70">Current Weight</p>
-                    <p class="text-2xl font-black"><span id="weightDisplay">--</span> lbs</p>
+                    <p class="text-xs font-bold uppercase opacity-70">Weight: <span id="weightDisplay">--</span> lbs</p>
+                    <p class="text-xs font-medium">Goal: <span id="targetWeightDisplay">--</span> (<span id="weightToGoal">--</span>)</p>
                 </div>
                 <button onclick="toggleModal('weightModal')" class="bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-bold">Log Weight</button>
             </div>
-            <p class="text-xs mt-2 font-medium">Target: <span id="targetWeightDisplay">--</span> lbs (<span id="weightToGoal">--</span> to go)</p>
         </div>
 
         <div class="space-y-3 mb-24" id="mealList"></div>
@@ -68,8 +78,8 @@
                 <h2 class="text-xl font-bold">Add Food</h2>
                 <button onclick="toggleModal('mealModal')" class="text-2xl">×</button>
             </div>
-            <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Quick Add from Library</p>
-            <div id="foodLibraryGrid" class="grid grid-cols-2 gap-2 mb-6 max-h-48 overflow-y-auto border-b pb-4"></div>
+            <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Library</p>
+            <div id="foodLibraryGrid" class="grid grid-cols-2 gap-2 mb-4 max-h-40 overflow-y-auto border-b pb-4"></div>
             <form id="mealForm" onsubmit="saveMeal(event)" class="space-y-4">
                 <input type="text" id="foodName" placeholder="Food Name" class="w-full p-3 bg-slate-100 rounded-xl" required>
                 <div class="flex gap-4">
@@ -77,19 +87,35 @@
                     <input type="number" id="foodPro" placeholder="Protein (g)" class="w-1/2 p-3 bg-slate-100 rounded-xl" required>
                 </div>
                 <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Log Entry</button>
-                <button type="button" onclick="addToLibrary()" class="w-full border-2 border-slate-900 py-2 rounded-2xl font-bold text-sm">Save to Library Only</button>
+                <button type="button" onclick="addToLibrary()" class="w-full border-2 border-slate-900 py-2 rounded-2xl font-bold text-sm">Save to Library</button>
             </form>
+        </div>
+    </div>
+
+    <div id="injectionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 overflow-y-auto max-h-[90vh]">
+            <h2 class="text-xl font-bold mb-4">Log Injection</h2>
+            <form onsubmit="saveInjection(event)" class="space-y-3">
+                <input type="text" id="injName" placeholder="Drug Name (e.g. B12)" class="w-full p-3 bg-slate-100 rounded-xl" required>
+                <div class="flex gap-2">
+                    <input type="number" step="0.01" id="injMg" placeholder="Dose (mg)" class="w-1/2 p-3 bg-slate-100 rounded-xl" required>
+                    <input type="number" step="0.01" id="injMl" placeholder="Total (cc/ml)" class="w-1/2 p-3 bg-slate-100 rounded-xl" required>
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold">Record Injection</button>
+            </form>
+            <div id="injectionHistory" class="mt-4 space-y-2"></div>
+            <button onclick="toggleModal('injectionModal')" class="w-full text-slate-400 text-sm font-bold mt-4">Close</button>
         </div>
     </div>
 
     <div id="profileModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-3xl p-6">
-            <h2 class="text-xl font-bold mb-4">Profile & Goals</h2>
+            <h2 class="text-xl font-bold mb-4 text-center">Profile & Goals</h2>
             <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Your Name</label><input type="text" id="userNameInput" class="w-full p-3 bg-slate-100 rounded-xl"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Daily Calorie Goal</label><input type="number" id="goalCalsInput" class="w-full p-3 bg-slate-100 rounded-xl"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Daily Protein Goal (g)</label><input type="number" id="goalProInput" class="w-full p-3 bg-slate-100 rounded-xl"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">Target Weight (lbs)</label><input type="number" id="goalWeightInput" class="w-full p-3 bg-slate-100 rounded-xl"></div>
+                <input type="text" id="userNameInput" placeholder="Name" class="w-full p-3 bg-slate-100 rounded-xl">
+                <input type="number" id="goalCalsInput" placeholder="Calorie Goal" class="w-full p-3 bg-slate-100 rounded-xl">
+                <input type="number" id="goalProInput" placeholder="Protein Goal" class="w-full p-3 bg-slate-100 rounded-xl">
+                <input type="number" id="goalWeightInput" placeholder="Target Weight" class="w-full p-3 bg-slate-100 rounded-xl">
                 <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Save Changes</button>
                 <button onclick="toggleModal('profileModal')" class="w-full text-slate-400 text-sm font-bold">Close</button>
             </div>
@@ -124,111 +150,4 @@
 
         function getDayData() {
             const d = datePicker.value;
-            if (!state.days[d]) state.days[d] = { meals: [], water: 0 };
-            return state.days[d];
-        }
-
-        function fillInputs() {
-            document.getElementById('userNameInput').value = state.user.name;
-            document.getElementById('goalCalsInput').value = state.user.calorieGoal;
-            document.getElementById('goalProInput').value = state.user.proteinGoal;
-            document.getElementById('goalWeightInput').value = state.user.targetWeight;
-        }
-
-        function saveProfile() {
-            state.user.name = document.getElementById('userNameInput').value;
-            state.user.calorieGoal = parseInt(document.getElementById('goalCalsInput').value) || 2000;
-            state.user.proteinGoal = parseInt(document.getElementById('goalProInput').value) || 150;
-            state.user.targetWeight = parseFloat(document.getElementById('goalWeightInput').value) || 150;
-            saveToStorage();
-            toggleModal('profileModal');
-        }
-
-        function saveWeight() {
-            const w = parseFloat(document.getElementById('weightInput').value);
-            if (w) { getDayData().weight = w; saveToStorage(); toggleModal('weightModal'); }
-        }
-
-        function addWater(oz) { getDayData().water += oz; saveToStorage(); }
-
-        function saveMeal(e) {
-            e.preventDefault();
-            getDayData().meals.push({
-                id: Date.now(),
-                name: document.getElementById('foodName').value,
-                cal: parseInt(document.getElementById('foodCals').value),
-                pro: parseInt(document.getElementById('foodPro').value)
-            });
-            document.getElementById('mealForm').reset();
-            saveToStorage();
-            toggleModal('mealModal');
-        }
-
-        function addToLibrary() {
-            const name = document.getElementById('foodName').value;
-            const cal = parseInt(document.getElementById('foodCals').value);
-            const pro = parseInt(document.getElementById('foodPro').value);
-            if (name && cal && pro) { state.library.push({ name, cal, pro }); saveToStorage(); alert('Saved to library!'); }
-        }
-
-        function selectFromLibrary(i) {
-            const item = state.library[i];
-            document.getElementById('foodName').value = item.name;
-            document.getElementById('foodCals').value = item.cal;
-            document.getElementById('foodPro').value = item.pro;
-        }
-
-        function deleteMeal(id) { getDayData().meals = getDayData().meals.filter(m => m.id !== id); saveToStorage(); }
-        function deleteLibraryItem(i, e) { e.stopPropagation(); state.library.splice(i, 1); saveToStorage(); }
-
-        function render() {
-            const day = getDayData();
-            const user = state.user;
-
-            document.getElementById('appTitle').innerText = user.name ? `${user.name}'s Tracker` : "Nutrition Tracker";
-            
-            const totalCal = (day.meals || []).reduce((sum, m) => sum + m.cal, 0);
-            const totalPro = (day.meals || []).reduce((sum, m) => sum + m.pro, 0);
-
-            document.getElementById('calGoalDisplay').innerText = user.calorieGoal;
-            document.getElementById('proGoalDisplay').innerText = user.proteinGoal;
-            document.getElementById('calCurrent').innerText = totalCal;
-            document.getElementById('proCurrent').innerText = totalPro;
-            
-            document.getElementById('calBar').style.width = Math.min((totalCal/user.calorieGoal)*100, 100) + "%";
-            document.getElementById('proBar').style.width = Math.min((totalPro/user.proteinGoal)*100, 100) + "%";
-            
-            let latestWeight = 0;
-            const dates = Object.keys(state.days).sort().reverse();
-            for(let d of dates) { if(state.days[d].weight) { latestWeight = state.days[d].weight; break; } }
-
-            const waterGoal = latestWeight ? Math.round(latestWeight / 2) : 64;
-            document.getElementById('waterProgress').innerText = `${day.water} / ${waterGoal} oz`;
-            document.getElementById('weightDisplay').innerText = day.weight || (latestWeight || "--");
-            document.getElementById('targetWeightDisplay').innerText = user.targetWeight || "--";
-            
-            if(user.targetWeight && latestWeight) {
-                const diff = (latestWeight - user.targetWeight).toFixed(1);
-                document.getElementById('weightToGoal').innerText = diff > 0 ? diff + " lbs" : "Goal Reached!";
-            }
-
-            document.getElementById('foodLibraryGrid').innerHTML = state.library.map((item, i) => `
-                <div onclick="selectFromLibrary(${i})" class="bg-slate-50 p-2 rounded-lg border border-slate-200 relative cursor-pointer">
-                    <p class="text-[10px] font-bold truncate">${item.name}</p>
-                    <p class="text-[9px] text-slate-500">${item.cal}cal | ${item.pro}g</p>
-                    <button onclick="deleteLibraryItem(${i}, event)" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px]">×</button>
-                </div>
-            `).join('');
-
-            document.getElementById('mealList').innerHTML = day.meals.map(m => `
-                <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100 mb-2">
-                    <div><p class="font-bold">${m.name}</p><p class="text-xs text-slate-500">${m.cal} Cal · ${m.pro}g Pro</p></div>
-                    <button onclick="deleteMeal(${m.id})" class="text-slate-300 text-xl">×</button>
-                </div>
-            `).join('');
-        }
-
-        render();
-    </script>
-</body>
-</html>
+            if (!state.days[d]) state.days[d] = { meals: [], water: 0, injections: [] };
