@@ -11,6 +11,7 @@
         body { -webkit-tap-highlight-color: transparent; background-color: #f8fafc; font-family: sans-serif; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 50; padding: 20px; }
         .modal.active { display: flex; }
+        .hide { display: none !important; }
     </style>
 </head>
 <body class="p-4">
@@ -59,35 +60,58 @@
     <div id="foodModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
         <h3 class="font-bold mb-2">Food Library</h3>
         <div id="libGrid" class="grid grid-cols-2 gap-2 mb-4 max-h-40 overflow-y-auto border-b pb-4 pt-1"></div>
-        <input type="text" id="fName" placeholder="Food Name" class="w-full p-2 mb-2 bg-slate-100 rounded text-sm">
-        <div class="flex gap-2 mb-4">
-            <input type="number" id="fCal" placeholder="Cals" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
-            <input type="number" id="fPro" placeholder="Pro (g)" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
-        </div>
-        <input type="hidden" id="editLibIndex" value="-1">
-        <div class="flex flex-col gap-2">
-            <button id="mainFoodBtn" onclick="addFood()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Log for Today</button>
-            <button id="libActionBtn" onclick="saveToLibrary()" class="w-full border border-slate-900 text-slate-900 py-2 rounded-xl text-xs font-bold">Add to Library</button>
-            <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Close</button>
+        
+        <div class="mt-4">
+            <input type="text" id="fName" placeholder="Food Name" class="w-full p-2 mb-2 bg-slate-100 rounded text-sm">
+            <div class="flex gap-2 mb-4">
+                <input type="number" id="fCal" placeholder="Cals" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
+                <input type="number" id="fPro" placeholder="Pro (g)" class="w-1/2 p-2 bg-slate-100 rounded text-sm">
+            </div>
+            <input type="hidden" id="editLibIndex" value="-1">
+            <div class="flex flex-col gap-2">
+                <button id="mainFoodBtn" onclick="addFood()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Log for Today</button>
+                <button id="libActionBtn" onclick="saveToLibrary()" class="w-full border border-slate-900 text-slate-900 py-2 rounded-xl text-xs font-bold">Add to Library</button>
+                <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Close</button>
+            </div>
         </div>
     </div></div>
 
     <div id="injModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm">
         <h3 class="font-bold mb-4" id="injModalTitle">Log Injection</h3>
         <input type="hidden" id="editInjIndex" value="-1">
-        <input type="text" id="iName" placeholder="Drug Name" class="w-full p-2 mb-2 bg-slate-100 rounded">
-        <div class="flex gap-2 mb-2">
-            <input type="number" id="iMg" step="0.1" placeholder="mg" class="w-1/2 p-2 bg-slate-100 rounded">
-            <input type="number" id="iMl" step="0.1" placeholder="ml" class="w-1/2 p-2 bg-slate-100 rounded">
+        
+        <div class="space-y-3">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Medication</label>
+                <input type="text" id="iName" placeholder="Drug Name" class="w-full p-2 bg-slate-100 rounded">
+            </div>
+            <div class="flex gap-2">
+                <div class="w-1/2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Dosage (mg)</label>
+                    <input type="number" id="iMg" step="0.1" class="w-full p-2 bg-slate-100 rounded">
+                </div>
+                <div class="w-1/2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">Volume (ml)</label>
+                    <input type="number" id="iMl" step="0.1" class="w-full p-2 bg-slate-100 rounded">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Time</label>
+                <input type="time" id="iTime" class="w-full p-2 bg-slate-100 rounded">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase">Notes</label>
+                <textarea id="iNotes" placeholder="e.g. Left thigh" class="w-full p-2 bg-slate-100 rounded text-sm h-16"></textarea>
+            </div>
         </div>
-        <textarea id="iNotes" placeholder="Notes (e.g. Left thigh)" class="w-full p-2 mb-4 bg-slate-100 rounded text-sm h-20"></textarea>
-        <button id="injSubmitBtn" onclick="addInj()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold">Record</button>
-        <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Cancel</button>
+
+        <button id="injSubmitBtn" onclick="addInj()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold mt-4">Record</button>
+        <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm text-center block">Cancel</button>
     </div></div>
 
     <div id="wModal" class="modal"><div class="bg-white p-6 rounded-3xl w-full max-w-sm text-center">
         <h3 class="font-bold mb-4">Log Weight</h3>
-        <input type="number" id="wInput" step="0.1" class="w-full p-4 mb-4 bg-slate-100 rounded-xl text-center text-2xl" placeholder="0.0">
+        <input type="number" id="wInput" step="0.1" class="w-full p-4 mb-4 bg-slate-100 rounded-xl text-center text-2xl">
         <button onclick="saveW()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Save</button>
     </div></div>
 
@@ -97,17 +121,22 @@
         <input type="number" id="uCal" placeholder="Calorie Goal" class="w-full p-2 mb-2 bg-slate-100 rounded">
         <input type="number" id="uPro" placeholder="Protein Goal" class="w-full p-2 mb-4 bg-slate-100 rounded">
         <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Save Settings</button>
-        <button onclick="closeModals()" class="w-full text-slate-400 mt-2 text-sm">Cancel</button>
     </div></div>
 
     <script>
         const starterLibrary = [{ name: "Chicken (4oz)", cal: 165, pro: 31 }, { name: "Eggs (2)", cal: 140, pro: 12 }, { name: "Greek Yogurt", cal: 100, pro: 18 }];
         let db = JSON.parse(localStorage.getItem('appDB')) || { user: { name: "", cGoal: 2000, pGoal: 150 }, days: {}, library: starterLibrary };
+        if(!db.library || db.library.length === 0) db.library = starterLibrary;
 
         function openModal(id) { 
             document.getElementById(id).classList.add('active'); 
-            if(id === 'foodModal') resetFoodForm();
+            if(id === 'foodModal') { renderLibrary(); resetFoodForm(); }
             if(id === 'injModal' && document.getElementById('editInjIndex').value == "-1") resetInjForm();
+            if(id === 'profileModal') {
+                document.getElementById('uName').value = db.user.name || "";
+                document.getElementById('uCal').value = db.user.cGoal || 2000;
+                document.getElementById('uPro').value = db.user.pGoal || 150;
+            }
         }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
         const picker = document.getElementById('datePicker');
@@ -121,120 +150,37 @@
 
         function save() { localStorage.setItem('appDB', JSON.stringify(db)); render(); }
 
-        // --- FOOD LOGIC ---
+        // --- FOOD & LIBRARY ---
+        function renderLibrary() {
+            const grid = document.getElementById('libGrid');
+            grid.innerHTML = db.library.map((l, i) => `
+                <div class="relative bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer" onclick="selectLib(${i})">
+                    <p class="text-[10px] font-bold truncate pr-4 text-slate-700">${l.name}</p>
+                    <p class="text-[9px] text-slate-500">${l.cal}c | ${l.pro}g</p>
+                    <div class="absolute top-1 right-1 flex flex-col gap-1">
+                        <button onclick="editLibItem(${i}, event)" class="text-[10px]">✏️</button>
+                        <button onclick="deleteLibItem(${i}, event)" class="text-[10px]">✕</button>
+                    </div>
+                </div>`).join('');
+        }
+
         function resetFoodForm() {
             document.getElementById('fName').value = ''; document.getElementById('fCal').value = '';
             document.getElementById('fPro').value = ''; document.getElementById('editLibIndex').value = '-1';
             document.getElementById('libActionBtn').innerText = 'Add to Library';
-            document.getElementById('mainFoodBtn').classList.remove('hidden'); renderLibrary();
+            document.getElementById('mainFoodBtn').classList.remove('hide');
         }
-        function editLibItem(i, e) {
-            e.stopPropagation(); const item = db.library[i];
-            document.getElementById('fName').value = item.name; document.getElementById('fCal').value = item.cal;
-            document.getElementById('fPro').value = item.pro; document.getElementById('editLibIndex').value = i;
-            document.getElementById('libActionBtn').innerText = 'Update Library Item';
-            document.getElementById('mainFoodBtn').classList.add('hidden');
-        }
-        function saveToLibrary() {
-            const n = document.getElementById('fName').value; const c = parseInt(document.getElementById('fCal').value) || 0;
-            const p = parseInt(document.getElementById('fPro').value) || 0; const idx = parseInt(document.getElementById('editLibIndex').value);
-            if(!n) return;
-            if(idx > -1) db.library[idx] = { name:n, cal:c, pro:p }; else db.library.push({ name:n, cal:c, pro:p });
-            save(); resetFoodForm();
-        }
+
         function selectLib(i) {
-            const item = db.library[i]; document.getElementById('fName').value = item.name;
-            document.getElementById('fCal').value = item.cal; document.getElementById('fPro').value = item.pro;
-            document.getElementById('editLibIndex').value = "-1"; document.getElementById('libActionBtn').innerText = 'Add to Library';
-            document.getElementById('mainFoodBtn').classList.remove('hidden');
-        }
-        function addFood() {
-            const n = document.getElementById('fName').value; if(!n) return;
-            getToday().food.push({ name: n, cal: parseInt(document.getElementById('fCal').value) || 0, pro: parseInt(document.getElementById('fPro').value) || 0 });
-            save(); closeModals();
+            const item = db.library[i];
+            document.getElementById('fName').value = item.name;
+            document.getElementById('fCal').value = item.cal;
+            document.getElementById('fPro').value = item.pro;
         }
 
-        // --- INJECTION LOGIC ---
-        function resetInjForm() {
-            document.getElementById('editInjIndex').value = "-1"; document.getElementById('injModalTitle').innerText = "Log Injection";
-            document.getElementById('iName').value = ""; document.getElementById('iMg').value = "";
-            document.getElementById('iMl').value = ""; document.getElementById('iNotes').value = "";
-            document.getElementById('injSubmitBtn').innerText = "Record";
-        }
-        function editInj(i) {
-            const item = getToday().inj[i];
-            document.getElementById('editInjIndex').value = i; document.getElementById('injModalTitle').innerText = "Edit Injection";
-            document.getElementById('iName').value = item.name; document.getElementById('iMg').value = item.mg;
-            document.getElementById('iMl').value = item.ml; document.getElementById('iNotes').value = item.notes || "";
-            document.getElementById('injSubmitBtn').innerText = "Update Entry";
-            openModal('injModal');
-        }
-        function addInj() {
-            const idx = parseInt(document.getElementById('editInjIndex').value);
-            const data = {
-                name: document.getElementById('iName').value, mg: document.getElementById('iMg').value,
-                ml: document.getElementById('iMl').value, notes: document.getElementById('iNotes').value,
-                time: idx > -1 ? getToday().inj[idx].time : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            if(!data.name) return;
-            if(idx > -1) getToday().inj[idx] = data; else getToday().inj.push(data);
-            save(); closeModals(); resetInjForm();
-        }
-
-        function saveW() { getToday().w = document.getElementById('wInput').value; save(); closeModals(); }
-        function saveProfile() {
-            db.user.name = document.getElementById('uName').value; db.user.cGoal = document.getElementById('uCal').value;
-            db.user.pGoal = document.getElementById('uPro').value; save(); closeModals();
-        }
-
-        function renderLibrary() {
-            document.getElementById('libGrid').innerHTML = db.library.map((l, i) => `
-                <div class="relative bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer" onclick="selectLib(${i})">
-                    <p class="text-[10px] font-bold truncate pr-4">${l.name}</p>
-                    <div class="absolute top-1 right-1 flex flex-col gap-1">
-                        <button onclick="editLibItem(${i}, event)" class="text-[10px]">✏️</button>
-                        <button onclick="event.stopPropagation(); db.library.splice(${i},1); save(); renderLibrary();" class="text-[10px]">✕</button>
-                    </div>
-                </div>`).join('');
-        }
-
-        function render() {
-            const day = getToday();
-            document.getElementById('headerName').innerText = db.user.name ? db.user.name + "'s Tracker" : "Tracker";
-            document.getElementById('cGoal').innerText = db.user.cGoal || 2000;
-            document.getElementById('pGoal').innerText = db.user.pGoal || 150;
-            document.getElementById('cCurr').innerText = (day.food || []).reduce((s, f) => s + f.cal, 0);
-            document.getElementById('pCurr').innerText = (day.food || []).reduce((s, f) => s + f.pro, 0);
-            
-            let displayW = day.w;
-            if(!displayW) {
-                const dates = Object.keys(db.days).sort().reverse();
-                for(let d of dates) { if(db.days[d].w) { displayW = db.days[d].w; break; } }
-            }
-            document.getElementById('wDisp').innerText = displayW || "--";
-
-            document.getElementById('injList').innerHTML = day.inj.map((i, idx) => `
-                <div class="bg-white/50 p-2 rounded-lg border border-emerald-100 flex justify-between items-start">
-                    <div class="flex-1">
-                        <div class="flex justify-between text-sm text-emerald-900">
-                            <span><b>${i.name}</b>: ${i.mg}mg</span>
-                            <span class="opacity-50 text-[10px]">${i.time}</span>
-                        </div>
-                        ${i.notes ? `<p class="text-[11px] text-emerald-700 italic mt-1 leading-tight">"${i.notes}"</p>` : ''}
-                    </div>
-                    <div class="flex flex-col gap-2 ml-3">
-                        <button onclick="editInj(${idx})" class="text-xs">✏️</button>
-                        <button onclick="getToday().inj.splice(${idx},1); save();" class="text-xs text-emerald-300">✕</button>
-                    </div>
-                </div>`).join('') || '<p class="text-xs text-emerald-600 opacity-60">No entries</p>';
-
-            document.getElementById('foodList').innerHTML = (day.food || []).map((f, index) => `
-                <div class="bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm">
-                    <div><p class="font-bold text-sm text-slate-700">${f.name}</p><p class="text-[10px] text-slate-400">${f.cal} cal | ${f.pro}g pro</p></div>
-                    <button onclick="getToday().food.splice(${index},1); save();" class="text-slate-300 px-2">✕</button>
-                </div>`).join('');
-        }
-        render();
-    </script>
-</body>
-</html>
+        function editLibItem(i, e) {
+            e.stopPropagation();
+            const item = db.library[i];
+            document.getElementById('fName').value = item.name;
+            document.getElementById('fCal').value = item.cal;
+            document.getElementById('fPro').value = item.
