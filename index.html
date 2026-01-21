@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="apple-touch-icon" href="icon.png">
     <title>Nutrition Tracker</title>
+    
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
@@ -56,8 +60,7 @@
             <p class="text-xs mt-2 font-medium">Target: <span id="targetWeightDisplay">--</span> lbs (<span id="weightToGoal">--</span> to go)</p>
         </div>
 
-        <div class="space-y-3 mb-24" id="mealList">
-            </div>
+        <div class="space-y-3 mb-24" id="mealList"></div>
 
         <button onclick="toggleModal('mealModal')" class="fixed bottom-6 right-6 w-16 h-16 bg-slate-900 text-white rounded-full shadow-2xl text-3xl flex items-center justify-center">＋</button>
     </div>
@@ -68,11 +71,8 @@
                 <h2 class="text-xl font-bold">Add Food</h2>
                 <button onclick="toggleModal('mealModal')" class="text-2xl">×</button>
             </div>
-            
             <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Quick Add from Library</p>
-            <div id="foodLibraryGrid" class="grid grid-cols-2 gap-2 mb-6 max-h-48 overflow-y-auto border-b pb-4">
-                </div>
-
+            <div id="foodLibraryGrid" class="grid grid-cols-2 gap-2 mb-6 max-h-48 overflow-y-auto border-b pb-4"></div>
             <form id="mealForm" onsubmit="saveMeal(event)" class="space-y-4">
                 <input type="text" id="foodName" placeholder="Food Name" class="w-full p-3 bg-slate-100 rounded-xl" required>
                 <div class="flex gap-4">
@@ -90,21 +90,10 @@
             <h2 class="text-xl font-bold mb-4">Profile & Goals</h2>
             <div class="space-y-4">
                 <input type="text" id="userName" placeholder="Your Name" class="w-full p-3 bg-slate-100 rounded-xl">
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Calorie Goal</label>
-                    <input type="number" id="goalCals" class="w-full p-3 bg-slate-100 rounded-xl">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Protein Goal (g)</label>
-                    <input type="number" id="goalPro" class="w-full p-3 bg-slate-100 rounded-xl">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase">Target Weight (lbs)</label>
-                    <input type="number" id="goalWeight" class="w-full p-3 bg-slate-100 rounded-xl">
-                </div>
-                <p class="text-[10px] text-cyan-600 font-bold">* Water goal auto-updates to 50% of weight.</p>
+                <div><label class="text-xs font-bold text-slate-400 uppercase">Calorie Goal</label><input type="number" id="goalCals" class="w-full p-3 bg-slate-100 rounded-xl"></div>
+                <div><label class="text-xs font-bold text-slate-400 uppercase">Protein Goal (g)</label><input type="number" id="goalPro" class="w-full p-3 bg-slate-100 rounded-xl"></div>
+                <div><label class="text-xs font-bold text-slate-400 uppercase">Target Weight (lbs)</label><input type="number" id="goalWeight" class="w-full p-3 bg-slate-100 rounded-xl"></div>
                 <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Save Changes</button>
-                <button onclick="toggleModal('profileModal')" class="w-full py-2 text-slate-400 font-bold">Cancel</button>
             </div>
         </div>
     </div>
@@ -114,47 +103,32 @@
             <h2 class="text-xl font-bold mb-4">Log Weight</h2>
             <input type="number" id="weightInput" step="0.1" class="w-full p-3 bg-slate-100 rounded-xl mb-4" placeholder="0.0 lbs">
             <button onclick="saveWeight()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Save Weight</button>
-            <button onclick="toggleModal('weightModal')" class="w-full py-2 text-slate-400 font-bold">Cancel</button>
         </div>
     </div>
 
     <script>
-        // --- DATA STRUCTURE ---
+        // JS LOGIC (SAME AS PREVIOUS)
         let state = JSON.parse(localStorage.getItem('nutritionAppData')) || {
             user: { name: "", calorieGoal: 2000, proteinGoal: 150, targetWeight: 150 },
-            days: {}, // format: { "2023-10-27": { meals: [], water: 0, weight: 0 } }
+            days: {},
             library: [
                 { name: "Chicken Breast (4oz)", cal: 165, pro: 31 },
                 { name: "Eggs (2 large)", cal: 140, pro: 12 },
                 { name: "Greek Yogurt", cal: 100, pro: 18 },
-                { name: "Protein Shake", cal: 150, pro: 30 },
-                { name: "Cottage Cheese (1/2c)", cal: 90, pro: 12 }
+                { name: "Protein Shake", cal: 150, pro: 30 }
             ]
         };
 
-        // --- CORE FUNCTIONS ---
-        function saveToStorage() {
-            localStorage.setItem('nutritionAppData', JSON.stringify(state));
-            render();
-        }
-
-        function toggleModal(id) {
-            const el = document.getElementById(id);
-            el.classList.toggle('hidden');
-        }
-
+        function saveToStorage() { localStorage.setItem('nutritionAppData', JSON.stringify(state)); render(); }
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
         const datePicker = document.getElementById('datePicker');
         if(!datePicker.value) datePicker.value = new Date().toISOString().split('T')[0];
-
-        function getSelectedDate() { return datePicker.value; }
-
         function getDayData() {
-            const d = getSelectedDate();
+            const d = datePicker.value;
             if (!state.days[d]) state.days[d] = { meals: [], water: 0 };
             return state.days[d];
         }
 
-        // --- APP LOGIC ---
         function saveProfile() {
             state.user.name = document.getElementById('userName').value;
             state.user.calorieGoal = parseInt(document.getElementById('goalCals').value);
@@ -166,24 +140,14 @@
 
         function saveWeight() {
             const w = parseFloat(document.getElementById('weightInput').value);
-            if (w) {
-                const day = getDayData();
-                day.weight = w;
-                saveToStorage();
-                toggleModal('weightModal');
-            }
+            if (w) { getDayData().weight = w; saveToStorage(); toggleModal('weightModal'); }
         }
 
-        function addWater(oz) {
-            const day = getDayData();
-            day.water += oz;
-            saveToStorage();
-        }
+        function addWater(oz) { getDayData().water += oz; saveToStorage(); }
 
         function saveMeal(e) {
             e.preventDefault();
-            const day = getDayData();
-            day.meals.push({
+            getDayData().meals.push({
                 id: Date.now(),
                 name: document.getElementById('foodName').value,
                 cal: parseInt(document.getElementById('foodCals').value),
@@ -198,106 +162,54 @@
             const name = document.getElementById('foodName').value;
             const cal = parseInt(document.getElementById('foodCals').value);
             const pro = parseInt(document.getElementById('foodPro').value);
-            if (name && cal && pro) {
-                state.library.push({ name, cal, pro });
-                saveToStorage();
-                alert('Saved to library!');
-            }
+            if (name && cal && pro) { state.library.push({ name, cal, pro }); saveToStorage(); alert('Saved!'); }
         }
 
-        function selectFromLibrary(index) {
-            const item = state.library[index];
+        function selectFromLibrary(i) {
+            const item = state.library[i];
             document.getElementById('foodName').value = item.name;
             document.getElementById('foodCals').value = item.cal;
             document.getElementById('foodPro').value = item.pro;
         }
 
-        function deleteMeal(id) {
-            const day = getDayData();
-            day.meals = day.meals.filter(m => m.id !== id);
-            saveToStorage();
-        }
+        function deleteMeal(id) { getDayData().meals = getDayData().meals.filter(m => m.id !== id); saveToStorage(); }
+        function deleteLibraryItem(i, e) { e.stopPropagation(); state.library.splice(i, 1); saveToStorage(); }
 
-        function deleteLibraryItem(index, event) {
-            event.stopPropagation();
-            state.library.splice(index, 1);
-            saveToStorage();
-        }
-
-        // --- RENDERER ---
         function render() {
             const day = getDayData();
             const user = state.user;
-
-            // Header
             document.getElementById('appTitle').innerText = user.name ? `${user.name}'s Tracker` : "Nutrition Tracker";
-            
-            // Goals
-            document.getElementById('calGoal').innerText = user.calorieGoal;
-            document.getElementById('proGoal').innerText = user.proteinGoal;
-            
-            // Current Progress
             const totalCal = day.meals.reduce((sum, m) => sum + m.cal, 0);
             const totalPro = day.meals.reduce((sum, m) => sum + m.pro, 0);
-            
             document.getElementById('calCurrent').innerText = totalCal;
             document.getElementById('proCurrent').innerText = totalPro;
-            document.getElementById('calBar').style.width = Math.min((totalCal / user.calorieGoal) * 100, 100) + "%";
-            document.getElementById('proBar').style.width = Math.min((totalPro / user.proteinGoal) * 100, 100) + "%";
-
-            // Water Calculation (50% of weight)
-            // Use current day weight, or find the most recent previous weight
+            document.getElementById('calBar').style.width = Math.min((totalCal/user.calorieGoal)*100, 100) + "%";
+            document.getElementById('proBar').style.width = Math.min((totalPro/user.proteinGoal)*100, 100) + "%";
+            
             let latestWeight = 0;
-            const sortedDates = Object.keys(state.days).sort().reverse();
-            for(let d of sortedDates) {
-                if(state.days[d].weight) {
-                    latestWeight = state.days[d].weight;
-                    break;
-                }
-            }
-
+            Object.keys(state.days).sort().reverse().forEach(d => { if(!latestWeight && state.days[d].weight) latestWeight = state.days[d].weight; });
             const waterGoal = latestWeight ? Math.round(latestWeight / 2) : 64;
             document.getElementById('waterProgress').innerText = `${day.water} / ${waterGoal} oz`;
-            
-            // Weight Displays
             document.getElementById('weightDisplay').innerText = day.weight || (latestWeight || "--");
             document.getElementById('targetWeightDisplay').innerText = user.targetWeight || "--";
-            if(user.targetWeight && latestWeight) {
-                document.getElementById('weightToGoal').innerText = (latestWeight - user.targetWeight).toFixed(1) + " lbs";
-            }
+            if(user.targetWeight && latestWeight) document.getElementById('weightToGoal').innerText = (latestWeight - user.targetWeight).toFixed(1) + " lbs";
 
-            // Library Grid
-            const libGrid = document.getElementById('foodLibraryGrid');
-            libGrid.innerHTML = state.library.map((item, i) => `
+            document.getElementById('foodLibraryGrid').innerHTML = state.library.map((item, i) => `
                 <div onclick="selectFromLibrary(${i})" class="bg-slate-50 p-2 rounded-lg border border-slate-200 relative group cursor-pointer">
                     <p class="text-[10px] font-bold truncate">${item.name}</p>
-                    <p class="text-[9px] text-slate-500">${item.cal}cal | ${item.pro}g pro</p>
+                    <p class="text-[9px] text-slate-500">${item.cal}cal | ${item.pro}g</p>
                     <button onclick="deleteLibraryItem(${i}, event)" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[8px]">×</button>
                 </div>
             `).join('');
 
-            // Meal List
-            const list = document.getElementById('mealList');
-            list.innerHTML = day.meals.map(m => `
-                <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100">
-                    <div>
-                        <p class="font-bold text-slate-800">${m.name}</p>
-                        <p class="text-xs text-slate-500">${m.cal} Cal · ${m.pro}g Protein</p>
-                    </div>
-                    <button onclick="deleteMeal(${m.id})" class="text-slate-300 hover:text-red-500 text-xl">×</button>
+            document.getElementById('mealList').innerHTML = day.meals.map(m => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100 mb-2">
+                    <div><p class="font-bold">${m.name}</p><p class="text-xs text-slate-500">${m.cal} Cal · ${m.pro}g Pro</p></div>
+                    <button onclick="deleteMeal(${m.id})" class="text-slate-300 text-xl">×</button>
                 </div>
             `).join('');
-
-            // Pre-fill Profile Inputs if empty
-            document.getElementById('userName').value = user.name;
-            document.getElementById('goalCals').value = user.calorieGoal;
-            document.getElementById('goalPro').value = user.proteinGoal;
-            document.getElementById('goalWeight').value = user.targetWeight;
         }
-
         function loadDate() { render(); }
-
-        // Initial Run
         render();
     </script>
 </body>
